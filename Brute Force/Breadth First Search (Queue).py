@@ -5,83 +5,85 @@ import time
 
 def printNode(node):
 
-    print(node[0], node[1], node[2])
-    print(node[3], node[4], node[5])
-    print(node[6], node[7], node[8])
+    for row in node[0]:
+        print(row)
 
     global nodeNumber
     print('Node:', nodeNumber)
-    print('Depth:', len(node[9:]))
-    print('Moves:', node[9:])
+    print('Depth:', len(node[2]))
+    print('Moves:', node[2])
     print('------')
     nodeNumber += 1
 
 
 def checkFinal(node):
 
-    if node[:9] == finalNode:
+    if node[0] == finalNode:
         printNode(node)
         return True
 
-    if node[:9] not in visitedList:
+    if node[0] not in visitedList:
         printNode(node)
         queue.put(node)
-        visitedList.append(node[:9])
+        visitedList.append(node[0])
 
     return False
 
 
 if __name__ == '__main__':
 
-    startNode = [4, 1, 3, 6, 2, 5, 7, 8, 0]
-    finalNode = [1, 2, 3, 4, 5, 0, 6, 7, 8]
+    startNode = [[4, 1, 3], [6, 2, 5], [7, 8, 0]]
+    finalNode = [[1, 2, 3], [4, 5, 0], [6, 7, 8]]
 
     found = False
 
     nodeNumber = 0
     visitedList = []
     queue = Queue()
-    queue.put(startNode)
+    queue.put((startNode, nodeNumber, []))
     visitedList.append(startNode)
-    printNode(startNode)
+    printNode((startNode, nodeNumber, []))
     t0 = time.time()
 
     while (not found and not queue.empty()):
 
         currentNode = queue.get()
-        blankIndex = currentNode.index(0)
+        matrix = currentNode[0]
+        moves = currentNode[2]
 
-        if blankIndex != 0 and blankIndex != 1 and blankIndex != 2:
+        for i in range(3):
+            for j in range(3):
+                if matrix[i][j] == 0:
+                    blankIndex = (i, j)
+                    break
 
-            upNode = copy.deepcopy(currentNode)
-            upNode[blankIndex] = upNode[blankIndex - 3]
-            upNode[blankIndex - 3] = 0
-            upNode.append('up')
-            found = checkFinal(upNode)
+        if blankIndex[0] > 0:
 
-        if blankIndex != 0 and blankIndex != 3 and blankIndex != 6 and found == False:
+            upNode = copy.deepcopy(matrix)
+            upNode[blankIndex[0]][blankIndex[1]] = upNode[blankIndex[0] - 1][blankIndex[1]]
+            upNode[blankIndex[0] - 1][blankIndex[1]] = 0
+            found = checkFinal((upNode, nodeNumber + 1, moves + ['up']))
 
-            leftNode = copy.deepcopy(currentNode)
-            leftNode[blankIndex] = leftNode[blankIndex - 1]
-            leftNode[blankIndex - 1] = 0
-            leftNode.append('left')
-            found = checkFinal(leftNode)
+        if blankIndex[1] > 0 and not found:
 
-        if blankIndex != 6 and blankIndex != 7 and blankIndex != 8 and found == False:
+            leftNode = copy.deepcopy(matrix)
+            leftNode[blankIndex[0]][blankIndex[1]] = leftNode[blankIndex[0]][blankIndex[1] - 1]
+            leftNode[blankIndex[0]][blankIndex[1] - 1] = 0
+            found = checkFinal((leftNode, nodeNumber + 1, moves + ['left']))
 
-            downNode = copy.deepcopy(currentNode)
-            downNode[blankIndex] = downNode[blankIndex + 3]
-            downNode[blankIndex + 3] = 0
-            downNode.append('down')
-            found = checkFinal(downNode)
+        if blankIndex[0] < 2 and not found:
 
-        if blankIndex != 2 and blankIndex != 5 and blankIndex != 8 and found == False:
+            downNode = copy.deepcopy(matrix)
+            downNode[blankIndex[0]][blankIndex[1]] = downNode[blankIndex[0] + 1][blankIndex[1]]
+            downNode[blankIndex[0] + 1][blankIndex[1]] = 0
+            found = checkFinal((downNode, nodeNumber + 1, moves + ['down']))
 
-            rightNode = copy.deepcopy(currentNode)
-            rightNode[blankIndex] = rightNode[blankIndex + 1]
-            rightNode[blankIndex + 1] = 0
-            rightNode.append('right')
-            found = checkFinal(rightNode)
+        if blankIndex[1] < 2 and not found:
+
+            rightNode = copy.deepcopy(matrix)
+            rightNode[blankIndex[0]][blankIndex[1]] = rightNode[blankIndex[0]][blankIndex[1] + 1]
+            rightNode[blankIndex[0]][blankIndex[1] + 1] = 0
+            found = checkFinal((rightNode, nodeNumber + 1, moves + ['right']))
 
     t1 = time.time()
     print('Time:', t1 - t0)
